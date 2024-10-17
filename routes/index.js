@@ -26,15 +26,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const usersController = __importStar(require("./users/users.controller"));
 const booksController = __importStar(require("./books/books.controller"));
+const authController = __importStar(require("./auth/auth.controller"));
+const admin_1 = require("../middleware/admin");
 const router = (0, express_1.Router)();
-router.get('/users', (req, res) => usersController.getAllUsers(req, res));
-router.get('/user/:name', (req, res) => usersController.getUser(req, res));
-router.post('/user', (req, res) => usersController.setNewUser(req, res));
-router.delete('/user/:id', (req, res) => usersController.deleteUser(req, res));
-router.get('/books', (req, res) => {
+const authRouter = (0, express_1.Router)();
+const tryFunc = async (func, res, next) => {
+    try {
+        func;
+    }
+    catch (error) {
+        next(error);
+    }
+};
+router.get('/users', admin_1.adminMiddleware, async (req, res, next) => tryFunc(await usersController.getAllUsers(req, res), res, next));
+router.get('/user/:name', async (req, res, next) => tryFunc(await usersController.getUser(req, res), res, next));
+router.delete('/user/:id', async (req, res, next) => tryFunc(await usersController.deleteUser(req, res), res, next));
+router.get('/books', async (req, res, next) => {
     // const newUser = await sql.query(`INSERT INTO users (name, email) values ($1, $2) RETURNING *`, ['User1', 'user1@gmail.com'])
     //const newUser = await sql.query('SELECT * FROM users')
     // resp.json(newUser)
-    booksController.getAllBooks(req, res);
+    tryFunc(await booksController.getAllBooks(req, res), res, next);
 });
+authRouter.post('/signup', async (req, res, next) => tryFunc(await authController.signUp(req, res), res, next));
+authRouter.post('/login', async (req, res, next) => tryFunc(await authController.logIn(req, res, next), res, next));
+authRouter.post('/activate/:id', async (req, res, next) => tryFunc(await authController.activateAccount(req, res, next), res, next));
+authRouter.get('/refresh', async (req, res, next) => tryFunc(await authController.refreshToken(req, res), res, next));
+router.use('/auth', authRouter);
 exports.default = router;

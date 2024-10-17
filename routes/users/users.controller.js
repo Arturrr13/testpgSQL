@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.setNewUser = exports.getUser = exports.getAllUsers = void 0;
+exports.deleteUser = exports.getUser = exports.getAllUsers = void 0;
 const service = __importStar(require("./users.service"));
 const getAllUsers = async (req, res) => {
     res.status(200).json(await service.getAllUsers());
@@ -31,16 +31,21 @@ const getAllUsers = async (req, res) => {
 exports.getAllUsers = getAllUsers;
 const getUser = async (req, res) => {
     const name = req.params.name;
-    res.status(200).json(await service.getUser(name));
+    const result = await service.getUser(name);
+    if (result)
+        res.status(200).json(result);
+    else
+        res.status(400).json(result);
 };
 exports.getUser = getUser;
-const setNewUser = async (req, res) => {
-    const { name, email, password } = req.body;
-    res.status(200).json(await service.setNewUser(name, email, password));
-};
-exports.setNewUser = setNewUser;
 const deleteUser = async (req, res) => {
     const id = req.params.id;
-    res.status(200).json(await service.deleteUser(id));
+    const result = await service.deleteUser(id);
+    if (result)
+        res.status(200).send(result);
 };
 exports.deleteUser = deleteUser;
+// export const setNewUser = async (req: Request, res: Response) => {
+//     const { name, email, password } = req.body
+//     res.status(200).json(await service.setNewUser(name, email, password))
+// }
